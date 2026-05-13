@@ -1,0 +1,28 @@
+# Stage 1: Python deps
+FROM python:3.11-slim AS builder
+RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY requirements.txt ./
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir --upgrade pip && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Stage 2: Runtime with Node for supergateway
+FROM python:3.11-slim AS runtime
+RUN apt-get update && apt-get install -y ca-certificates curl && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+WORKDIR /app
+COPY . .
+RUN mkdir -p logs tmp
+
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+ENV PORT=8080
+
+EXPOSE 8080
+CMD ["sh", "-c", "npx -y supergateway --port ${PORT:-8080} --outputTransport streamableHttp --stdio 'python server.py'"]

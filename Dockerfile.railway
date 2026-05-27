@@ -25,4 +25,4 @@ ENV PYTHONPATH=/app
 ENV PORT=8080
 
 EXPOSE 8080
-CMD ["sh", "-c", "supergateway --port ${PORT:-8080} --outputTransport streamableHttp --stdio 'python server.py'"]
+CMD ["sh", "-c", "supergateway --port ${PORT:-8080} --outputTransport sse --stdio 'python server.py'"]

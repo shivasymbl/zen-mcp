@@ -25,4 +25,4 @@ ENV PYTHONPATH=/app
 ENV PORT=8080
 
 EXPOSE 8080
-CMD ["sh", "-c", "while true; do supergateway --port ${PORT:-8080} --outputTransport streamableHttp --healthEndpoint /health --stdio 'exec python server.py' 2>&1 || true; echo "[watchdog] supergateway exited, restarting in 2s..."; sleep 2; done"]
+CMD ["sh", "-c", "while true; do supergateway --port ${PORT:-8080} --outputTransport streamableHttp --healthEndpoint /health --stdio 'exec python server.py' 2>&1 || true; sleep 2; done"]

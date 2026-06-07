@@ -18,11 +18,22 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 COPY . .
-RUN npm install -g supergateway && mkdir -p logs tmp
+RUN npm install -g supergateway@3.4.3 && mkdir -p logs tmp
+RUN groupadd -r mcpuser && useradd -r -g mcpuser mcpuser && chown -R mcpuser:mcpuser /app
+USER mcpuser
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 ENV PORT=8080
 
 EXPOSE 8080
-CMD ["sh", "-c", "while true; do supergateway --port ${PORT:-8080} --outputTransport streamableHttp --healthEndpoint /health --stdio 'exec python server.py' 2>&1 || true; sleep 2; done"]
+# --stateful: one child per session, not one per request
+# --sessionTimeout 600000: Python servers are slow to start; keep sessions alive 10 min
+CMD ["sh", "-c", "supergateway \
+  --port ${PORT:-8080} \
+  --outputTransport streamableHttp \
+  --stateful \
+  --sessionTimeout 600000 \
+  --healthEndpoint /health \
+  --oauth2Bearer \"${MCP_AUTH_TOKEN}\" \
+  --stdio 'exec python server.py'"]

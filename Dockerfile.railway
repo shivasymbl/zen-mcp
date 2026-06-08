@@ -28,12 +28,15 @@ ENV PORT=8080
 
 EXPOSE 8080
 # --stateful: one child per session, not one per request
-# --sessionTimeout 600000: Python servers are slow to start; keep sessions alive 10 min
+# --keepAliveInterval 30000: SSE pings keep session alive while client connected
+# --sessionTimeout 3600000: 1h fallback timeout if client disconnects silently
 CMD ["sh", "-c", "supergateway \
   --port ${PORT:-8080} \
   --outputTransport streamableHttp \
   --stateful \
-  --sessionTimeout 600000 \
+  --keepAliveInterval 30000 \
+  --sessionTimeout 3600000 \
   --healthEndpoint /health \
   --oauth2Bearer \"${MCP_AUTH_TOKEN}\" \
   --stdio 'exec python server.py'"]
+

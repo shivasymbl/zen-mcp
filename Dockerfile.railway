@@ -18,7 +18,7 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /app
 COPY . .
-RUN npm install -g supergateway@3.4.3 && mkdir -p logs tmp
+RUN npm install -g supergateway@4.2.0 && mkdir -p logs tmp
 RUN groupadd -r mcpuser && useradd -r -g mcpuser mcpuser && chown -R mcpuser:mcpuser /app
 USER mcpuser
 
@@ -28,15 +28,14 @@ ENV PORT=8080
 
 EXPOSE 8080
 # --stateful: one child per session, not one per request
-# --keepAliveInterval 30000: SSE pings keep session alive while client connected
 # --sessionTimeout 3600000: 1h fallback timeout if client disconnects silently
+# Auth: set SUPERGATEWAY_API_KEY; clients then send "Authorization: Bearer <key>" (or X-API-Key).
+# Unset = no auth. /health stays open for the Railway healthcheck.
 CMD ["sh", "-c", "supergateway \
   --port ${PORT:-8080} \
   --outputTransport streamableHttp \
   --stateful \
-  --keepAliveInterval 30000 \
   --sessionTimeout 3600000 \
   --healthEndpoint /health \
-  --oauth2Bearer \"${MCP_AUTH_TOKEN}\" \
   --stdio 'exec python server.py'"]
 

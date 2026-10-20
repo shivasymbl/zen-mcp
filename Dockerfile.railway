@@ -1,5 +1,5 @@
 # Stage 1: Python deps
-FROM python:3.11-slim AS builder
+FROM python:3.13-slim AS builder
 RUN apt-get update && apt-get install -y build-essential curl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt ./
@@ -8,9 +8,9 @@ RUN python -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime with Node for supergateway
-FROM python:3.11-slim AS runtime
+FROM python:3.13-slim AS runtime
 RUN apt-get update && apt-get install -y ca-certificates curl && \
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 

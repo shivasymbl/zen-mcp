@@ -31,5 +31,8 @@ check "health leaks no Authorization header" "$(curl -s -D - -o /dev/null "http:
 check "initialize without key" "$(post)" 401
 check "initialize with wrong key" "$(post -H 'authorization: Bearer nope')" 401
 check "initialize with key" "$(post -H "authorization: Bearer $KEY")" 200
+body=$(curl -s -X POST "http://127.0.0.1:$PORT/mcp" -H 'content-type: application/json' \
+  -H 'accept: application/json, text/event-stream' -H "authorization: Bearer $KEY" -d "$INIT")
+check "initialize with key returns serverInfo" "$(echo "$body" | grep -c '"serverInfo"' || true)" 1
 [ $fail -eq 0 ] || { echo '--- gateway log ---'; cat "$SHIM/log"; }
 exit $fail

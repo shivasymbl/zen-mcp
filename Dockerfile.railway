@@ -29,9 +29,11 @@ ENV PORT=8080
 EXPOSE 8080
 # --stateful: one child per session, not one per request
 # --sessionTimeout 3600000: 1h fallback timeout if client disconnects silently
-# Auth: set SUPERGATEWAY_API_KEY; clients then send "Authorization: Bearer <key>" (or X-API-Key).
-# Unset = no auth. /health stays open for the Railway healthcheck.
-CMD ["sh", "-c", "supergateway \
+# Auth: SUPERGATEWAY_API_KEY is required; clients send "Authorization: Bearer <key>" (or X-API-Key).
+# Fail closed: unset/blank key exits 1 before listening (supergateway alone treats unset as open).
+# /health stays open for the Railway healthcheck.
+CMD ["sh", "-c", "case ${SUPERGATEWAY_API_KEY:-} in *[![:space:]]*) ;; *) echo 'FATAL: SUPERGATEWAY_API_KEY is unset or blank; refusing to start an unauthenticated gateway.' >&2; exit 1;; esac; \
+  supergateway \
   --port ${PORT:-8080} \
   --outputTransport streamableHttp \
   --stateful \
